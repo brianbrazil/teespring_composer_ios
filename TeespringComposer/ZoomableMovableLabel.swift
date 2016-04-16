@@ -5,16 +5,16 @@
 
 import UIKit
 
-class ZoomableMovableLabel : UILabel {
+class ZoomableMovableLabel : UILabel, UIAlertViewDelegate {
 
     let panRec = UIPanGestureRecognizer()
     let pinchRec = UIPinchGestureRecognizer()
     let doubleTapRec = UITapGestureRecognizer()
+    let longPressRec = UILongPressGestureRecognizer()
     var x : CGFloat = 300
     var y : CGFloat = 300
     var width : CGFloat = 200
     var height : CGFloat = 200
-
 
     required init(coder decoder: NSCoder) {
         fatalError("not implemented")
@@ -40,6 +40,9 @@ class ZoomableMovableLabel : UILabel {
         doubleTapRec.numberOfTapsRequired = 2
         doubleTapRec.addTarget(self, action: #selector(ZoomableMovableLabel.doubleTapView(_:)))
         self.addGestureRecognizer(doubleTapRec)
+
+        longPressRec.addTarget(self, action: #selector(ZoomableMovableImageView.longPressView(_:)))
+        self.addGestureRecognizer(longPressRec)
     }
 
     func pinchedView(sender:UIPinchGestureRecognizer) {
@@ -52,7 +55,6 @@ class ZoomableMovableLabel : UILabel {
             self.width = self.frame.width
             self.height = self.frame.height
         } else {
-            print("pinch")
             self.frame = CGRectMake(scale_x(sender.scale), scale_y(sender.scale), self.width * sender.scale, self.height * sender.scale)
             adjustFontSizeToFitRect(self.frame)
             self.superview!.bringSubviewToFront(self)
@@ -84,6 +86,20 @@ class ZoomableMovableLabel : UILabel {
         self.superview!.bringSubviewToFront(self)
     }
 
+    func longPressView(sender:UITapGestureRecognizer) {
+        if (sender.state == .Began) {
+            let alert = UIAlertView(title: "Remove this text?", message: "", delegate:self, cancelButtonTitle:"No", otherButtonTitles: "Yes")
+            alert.show()
+
+        }
+    }
+
+    func alertView(alertView: UIAlertView, didDismissWithButtonIndex buttonIndex: Int) {
+        if (buttonIndex > 0) {
+            removeFromSuperview()
+        }
+    }
+
     func scale_x(scale: CGFloat) -> CGFloat {
         return self.x-(((self.width * scale)-self.width)/2)
     }
@@ -92,28 +108,23 @@ class ZoomableMovableLabel : UILabel {
         return self.y-(((self.height * scale)-self.height)/2)
     }
 
-    func adjustFontSizeToFitRect(rect : CGRect){
-
-        if text == nil{
+    func adjustFontSizeToFitRect(rect : CGRect) {
+        if text == nil {
             return
         }
-
         frame = rect
 
         let maxFontSize: CGFloat = 100.0
         let minFontSize: CGFloat = 5.0
-
+        let constraintSize = CGSize(width: rect.width, height: CGFloat.max)
         var q = Int(maxFontSize)
         var p = Int(minFontSize)
 
-        let constraintSize = CGSize(width: rect.width, height: CGFloat.max)
-
-        while(p <= q){
+        while(p <= q) {
             let currentSize = (p + q) / 2
             font = font.fontWithSize( CGFloat(currentSize) )
             let text = NSAttributedString(string: self.text!, attributes: [NSFontAttributeName:font])
             let textRect = text.boundingRectWithSize(constraintSize, options: .UsesLineFragmentOrigin, context: nil)
-
             let labelSize = textRect.size
 
             if labelSize.height < frame.height && labelSize.height >= frame.height-10 && labelSize.width < frame.width && labelSize.width >= frame.width-10 {
@@ -124,7 +135,5 @@ class ZoomableMovableLabel : UILabel {
                 p = currentSize + 1
             }
         }
-
     }
-
 }

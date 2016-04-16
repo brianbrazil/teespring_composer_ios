@@ -12,6 +12,7 @@ import UIKit
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
+    @IBOutlet var whiteTeeImageView : UIImageView!
     @IBOutlet var textField : UITextField!
 
     let imagePicker = UIImagePickerController()
@@ -52,6 +53,24 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             self.view.endEditing(true)
             textField.text = nil
             self.view.addSubview(ZoomableMovableLabel(text: text))
+        }
+    }
+    
+    @IBAction func screenshot() {
+        whiteTeeImageView.hidden = true
+        UIGraphicsBeginImageContextWithOptions(CGSizeMake(385,580), false, 0);
+        self.view.drawViewHierarchyInRect(CGRectMake(-193,-195,view.bounds.size.width,view.bounds.size.height), afterScreenUpdates: true)
+        let image:UIImage = UIGraphicsGetImageFromCurrentImageContext();
+//        view.addSubview(ZoomableMovableImageView(image: image))
+        whiteTeeImageView.hidden = false
+        self.performSegueWithIdentifier("GoToCheckout", sender: image)
+    }
+
+    override func prepareForSegue(segue: UIStoryboardSegue!, sender: AnyObject!) {
+        if (segue.identifier == "GoToCheckout") {
+            let checkoutViewController = segue.destinationViewController as! CheckoutViewController
+            let image = sender as! UIImage
+            checkoutViewController.image = image
         }
     }
 }

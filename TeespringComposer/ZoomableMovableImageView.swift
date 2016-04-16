@@ -5,11 +5,12 @@
 
 import UIKit
 
-class ZoomableMovableImageView : UIImageView {
+class ZoomableMovableImageView : UIImageView, UIAlertViewDelegate {
 
     let panRec = UIPanGestureRecognizer()
     let pinchRec = UIPinchGestureRecognizer()
     let doubleTapRec = UITapGestureRecognizer()
+    let longPressRec = UILongPressGestureRecognizer()
     var x : CGFloat = 300
     var y : CGFloat = 300
     var width : CGFloat = 200
@@ -35,6 +36,9 @@ class ZoomableMovableImageView : UIImageView {
         doubleTapRec.numberOfTapsRequired = 2
         doubleTapRec.addTarget(self, action: #selector(ZoomableMovableImageView.doubleTapView(_:)))
         self.addGestureRecognizer(doubleTapRec)
+
+        longPressRec.addTarget(self, action: #selector(ZoomableMovableImageView.longPressView(_:)))
+        self.addGestureRecognizer(longPressRec)
     }
 
     func pinchedView(sender:UIPinchGestureRecognizer) {
@@ -59,6 +63,7 @@ class ZoomableMovableImageView : UIImageView {
         } else if (sender.state == .Ended) {
             self.x = self.frame.minX
             self.y = self.frame.minY
+            print("\(x), \(y)")
         } else {
             let translation = sender.translationInView(self)
             self.frame = CGRectMake(self.x+translation.x, self.y+translation.y, self.width, self.height)
@@ -74,6 +79,19 @@ class ZoomableMovableImageView : UIImageView {
         self.height = self.height * scale
         self.frame = CGRectMake(x, y, width, height)
         self.superview!.bringSubviewToFront(self)
+    }
+
+    func longPressView(sender:UITapGestureRecognizer) {
+        if (sender.state == .Began) {
+            let alert = UIAlertView(title: "Remove this image?", message: "", delegate:self, cancelButtonTitle:"No", otherButtonTitles: "Yes")
+            alert.show()
+        }
+    }
+
+    func alertView(alertView: UIAlertView, didDismissWithButtonIndex buttonIndex: Int) {
+        if (buttonIndex > 0) {
+            removeFromSuperview()
+        }
     }
 
     func scale_x(scale: CGFloat) -> CGFloat {
